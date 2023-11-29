@@ -6,6 +6,7 @@ const uuid = require('uuid');
 
 const db = require('../lib/db.js');
 const userMiddleware = require('../middleware/users.js');
+const blacklist = new Set();
 
 // http://localhost:3000/api/sign-up
 router.post('/sign-up', userMiddleware.validateRegister, (req, res, next) => {
@@ -112,7 +113,7 @@ router.get('/secret-route', userMiddleware.isLoggedIn, (req, res, next) => {
 });
 
 // http://localhost:3000/api/change-username
-app.post('/api/change-username', userMiddleware.isLoggedIn, (req, res) => {
+router.post('/change-username', userMiddleware.isLoggedIn, (req, res) => {
   const userId = req.userData.userId;
   const newUsername = req.body.newUsername;
 
@@ -134,8 +135,35 @@ app.post('/api/change-username', userMiddleware.isLoggedIn, (req, res) => {
     }
   });
 
-  return res.status(200).json({ message: 'Username changed successfully' });
+  // return res.status(200).json({ message: 'Username changed successfully' });
 });
+
+
+// router.post('/logout', userMiddleware.isLoggedIn, (req, res) => {
+//   // Optionally: Add the user's token to a blacklist on the server
+//   const userToken = req.headers.authorization.split(' ')[1];
+//   blacklist.add(userToken);
+
+//   // Clear the token on the client side (assuming it's stored in localStorage)
+//   res.status(200).send({ message: 'Logout successful' });
+// });
+
+router.delete('/logout', userMiddleware.isLoggedIn, (req, res) => {
+  // Optionally: Add the user's token to a blacklist on the server
+  const userToken = req.headers.authorization.split(' ')[1];
+
+  // Check if the token is already in the blacklist
+  if (blacklist.has(userToken)) {
+    return res.status(401).json({ message: 'Token already blacklisted' });
+  }
+
+  // Add the token to the blacklist
+  blacklist.add(userToken);
+
+  // Clear the token on the client side (assuming it's stored in localStorage)
+  res.status(200).json({ message: 'Logout successful' });
+});
+
 
 
 module.exports = router;

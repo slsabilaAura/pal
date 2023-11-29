@@ -46,7 +46,7 @@ module.exports = {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, 'SECRETKEY');
+      const decoded = jwt.verify(token, process.env.SECRET_KEY);
       req.userData = decoded;
       next();
     } catch (err) {
@@ -78,10 +78,36 @@ function changeUsername(newUsername) {
       newUsername: newUsername,
     }),
   })
-    .then(response => response.json())
-    .then(data => {
-      // Handle response from the server (success or error)
-      console.log(data);
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to change username');
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log(data);
+  })
+  .catch(error => console.error('Error:', error));
+  
+}
+
+function logout() {
+  const token = localStorage.getItem('token');
+
+  fetch('http://localhost:3000/api/logout', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to logout');
+      }
+      localStorage.removeItem('token');
+      console.log('Logout successful');
     })
     .catch(error => console.error('Error:', error));
 }
+
