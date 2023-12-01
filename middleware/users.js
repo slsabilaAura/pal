@@ -46,15 +46,22 @@ module.exports = {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.SECRET_KEY);
+      const decoded = jwt.sign(token, process.env.SECRET_KEY,{ expiresIn: '1h' });
+      // const currentTimestamp = Math.floor(Date.now() / 1000);
+      //   if (decoded.exp <= currentTimestamp) {
+      //     return res.status(400).send({
+      //       message: 'Your session has expired!',
+      //     });
+      //   }
       req.userData = decoded;
       next();
     } catch (err) {
       return res.status(400).send({
-        message: 'Your session is not valid!',
+        message: 'Your session was end!',
       });
     }
   },
+  
 };
 
 function isValidEmail(email) {
